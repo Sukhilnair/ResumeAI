@@ -3,20 +3,23 @@ kind: Deployment
 metadata:
   name: {{ include "ResumeAI.fullname" . }}-backend
   labels:
-    {{- include "ResumeAI.labels" . | nindent 4 }}
+    app: {{ include "ResumeAI.name" . }}-backend
+    chart: ResumeAI-0.1.0
+    release: release-name
+    heritage: Helm
 spec:
-  replicas: {{ .Values.backEnd.replicaCount }}
+  replicas: {{ .Values.backEnd.replicaCount }}  # Make sure this is defined in values.yaml
   selector:
     matchLabels:
-      app: {{ include "ResumeAI.name" . }}-backend
+      app: {{ include "ResumeAI.name" . }}-backend  # Correct this line
   template:
     metadata:
       labels:
-        app: {{ include "ResumeAI.name" . }}-backend
+        app: {{ include "ResumeAI.name" . }}-backend  # Ensure consistency
     spec:
       containers:
         - name: resumeaibackend
-          image: "{{ .Values.backEnd.image }}"
+          image: "{{ .Values.backEnd.image }}"  # Ensure this is defined in values.yaml
           env:
             - name: JWT_SECRET_KEY
               valueFrom:
@@ -49,4 +52,4 @@ spec:
                   name: {{ include "ResumeAI.fullname" . }}-config
                   key: FRONT_END
           ports:
-            - containerPort: {{ .Values.backEnd.containerPort }}
+            - containerPort: {{ .Values.backEnd.containerPort }}  # Ensure this is defined
