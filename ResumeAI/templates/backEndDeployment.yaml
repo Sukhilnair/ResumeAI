@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ResumeAI.fullname" . }}-backend
+  labels:
+    {{- include "ResumeAI.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backEnd.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "ResumeAI.name" . }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ include "ResumeAI.name" . }}-backend
+    spec:
+      containers:
+        - name: resumeaibackend
+          image: "{{ .Values.backEnd.image }}"
+          env:
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-secrets
+                  key: JWT_SECRET_KEY
+            - name: MONGO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-secrets
+                  key: MONGO_URL
+            - name: OPENAI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-secrets
+                  key: OPENAI_KEY
+            - name: GMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-secrets
+                  key: GMAIL_USER
+            - name: GMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-secrets
+                  key: GMAIL_PASS
+            - name: FRONT_END
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "ResumeAI.fullname" . }}-config
+                  key: FRONT_END
+          ports:
+            - containerPort: {{ .Values.backEnd.containerPort }}

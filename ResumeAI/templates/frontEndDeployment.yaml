@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ResumeAI.fullname" . }}-frontend
+  labels:
+    {{- include "ResumeAI.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontEnd.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "ResumeAI.name" . }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ include "ResumeAI.name" . }}-frontend
+    spec:
+      containers:
+        - name: resumeaifrontend
+          image: "{{ .Values.frontEnd.image }}"
+          ports:
+            - containerPort: {{ .Values.frontEnd.containerPort }}
+        
