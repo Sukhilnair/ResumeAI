@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "ResumeAI.fullname" . }}-config
+  name: resumeai-config
 data:
   FRONT_END: {{ .Values.frontEnd.frontEndURL | quote }}

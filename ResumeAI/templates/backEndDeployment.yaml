@@ -1,55 +1,50 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ResumeAI.fullname" . }}-backend
-  labels:
-    app: {{ include "ResumeAI.name" . }}-backend
-    chart: ResumeAI-0.1.0
-    release: release-name
-    heritage: Helm
+  name: resumeai
 spec:
-  replicas: {{ .Values.backEnd.replicaCount }}  # Ensure this is defined in values.yaml
   selector:
     matchLabels:
-      app: {{ include "ResumeAI.name" . }}-backend  # Corrected
+      app: resumeai-backend
   template:
     metadata:
       labels:
-        app: {{ include "ResumeAI.name" . }}-backend  # Ensure consistency
+        app: resumeai-backend
     spec:
+      replicas: {{ .Values.backEnd.replicaCount }}
       containers:
-        - name: resumeaibackend
-          image: "{{ .Values.backEnd.image }}"  # Ensure this is defined in values.yaml
-          env:
-            - name: JWT_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-resumeai-secrets
-                  key: JWT_SECRET_KEY
-            - name: MONGO_URL
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-resumeai-secrets
-                  key: MONGO_URL
-            - name: OPENAI_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-resumeai-secrets
-                  key: OPENAI_KEY
-            - name: GMAIL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-resumeai-secrets
-                  key: GMAIL_USER
-            - name: GMAIL_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-resumeai-secrets
-                  key: GMAIL_PASS
-            - name: FRONT_END
-              valueFrom:
-                configMapKeyRef:
-                  name: release-name-resumeai-config
-                  key: FRONT_END
-          ports:
-            - containerPort: {{ .Values.backEnd.containerPort }}
+      - name: resumeaibackend
+        image: {{ .Values.backEnd.image }}
+        env:
+          - name: JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: resumeai-secrets
+                key: JWT_SECRET_KEY
+          - name: MONGO_URL
+            valueFrom:
+              secretKeyRef:
+                name: resumeai-secrets
+                key: MONGO_URL
+          - name: OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: resumeai-secrets
+                key: OPENAI_KEY
+          - name: GMAIL_USER
+            valueFrom:
+              secretKeyRef:
+                name: resumeai-secrets
+                key: GMAIL_USER
+          - name: GMAIL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: resumeai-secrets
+                key: GMAIL_PASS
+          - name: FRONT_END
+            valueFrom:
+              configMapKeyRef:
+                name: resumeai-config
+                key: FRONT_END
+        ports:
+          - containerPort: 4292

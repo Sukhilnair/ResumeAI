@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ResumeAI.fullname" . }}-frontend
+  name: resumeai-frontend
   labels:
-    {{- include "ResumeAI.labels" . | nindent 4 }}
+    resumeai-frontend
 spec:
   replicas: {{ .Values.frontEnd.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "ResumeAI.name" . }}-frontend
+      app: resumeai-frontend
   template:
     metadata:
       labels:
-        app: {{ include "ResumeAI.name" . }}-frontend
+        app: resumeai-frontend
     spec:
       containers:
         - name: resumeaifrontend
