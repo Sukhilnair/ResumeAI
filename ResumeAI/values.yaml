@@ -1,4 +1,4 @@
-namespace: ResumeAI
+namespace: resumeai
 backEnd:
   image: your-backend-image
   pullPolicy: always
