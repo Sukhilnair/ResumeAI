@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: resumeai
+  name: resumeai-backend
 spec:
   selector:
     matchLabels:
