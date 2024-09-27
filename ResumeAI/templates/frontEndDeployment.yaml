@@ -19,3 +19,6 @@ spec:
           image: "{{ .Values.frontEnd.image }}"
           ports:
             - containerPort: {{ .Values.frontEnd.containerPort }}
+          env:
+            - name: API_TARGET
+              value: {{ .Values.backEnd.backEndURL }}

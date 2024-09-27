@@ -1,5 +1,6 @@
 namespace: resumeai
 backEnd:
+  backEndURL: http://resumeai-backend:4200
   image: your-backend-image
   pullPolicy: always
   containerPort: 4292
@@ -10,7 +11,7 @@ service:
   port: 80
 
 frontEnd:
-  frontEndURL: http://resumeai-resumeai-frontend:4292
+  frontEndURL: http://resumeai-frontend:4292
   image: your-frontend-image
   pullPolicy: always
   replicaCount: 1
