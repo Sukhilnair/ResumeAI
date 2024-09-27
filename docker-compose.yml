@@ -5,7 +5,7 @@ services:
       context: ./ResumeBuilderBackend
     environment:
       - JWT_SECRET_KEY=MYREALLYSECRETKEY
-      - MONGO_URL=mongodb+srv://sukhilnair:sukhil123@cluster0.dm4xp4t.mongodb.net/travelmemory
+      - MONGO_URL=mongodb+srv://
       - OPENAI_KEY=OPENAI_API_KEY
       - GMAIL_USER=THIS EMAIL IS USED TO SEND RESUMES
       - GMAIL_PASS=PASSWORD USED BY NODEMAILER
