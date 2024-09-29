@@ -1,0 +1,120 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO = "https://github.com/Sukhilnair/ResumeAI.git"
+        ECR_REPO_URI = 'public.ecr.aws/b4e0x1f6'
+        AWS_REGION = 'us-east-1'
+        AWS_CREDENTIALS_ID = 'aws-credentials'
+        CLUSTER_NAME = 'sukhil-cluster'
+        KUBE_CONTEXT = "minikube"
+        VERSION = "v${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: "${env.GIT_REPO}"
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                script {
+                    sh '''
+                        cd ResumeBuilderBackend 
+                        docker build -t ${ECR_REPO_URI}/resumeai/backend:${VERSION} -t ${ECR_REPO_URI}/resumeai/backend:latest .
+                    '''
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                script {
+                    sh '''
+                        cd ResumeBuilderAngular 
+                        docker build -t ${ECR_REPO_URI}/resumeai/frontend:${VERSION} -t ${ECR_REPO_URI}/resumeai/frontend:latest .
+                    '''
+                }
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        sh '''
+                            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                            aws configure set default.region ${AWS_REGION}
+                            aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO_URI}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Push Frontend Docker Image') {
+            steps {
+                script {
+                    sh "docker push ${ECR_REPO_URI}/resumeai/frontend:${VERSION}"
+                }
+            }
+        }
+
+        stage('Push Backend Docker Image') {
+            steps {
+                script {
+                    sh "docker push ${ECR_REPO_URI}/resumeai/backend:${VERSION}"
+                }
+            }
+        }
+
+        stage('Deploy Application to Minikube with Helm') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'mongodb-url-secret', variable: 'MONGODB_URL')]) {
+                        sh '''
+                            kubectl config use-context ${KUBE_CONTEXT}
+                            helm repo add stable https://charts.helm.sh/stable
+                            helm repo update
+                            helm install resumeai-minikube ./ResumeAI --namespace resumeai-minikube --set secrets.mongoUrl=${MONGODB_URL} --set secrets.jwtSecretKey="NEWSECRETKEY" --set secrets.openAiKey="NEWOPENAIKEY" --set secrets.gmailUser="new_email@gmail.com" --set secrets.gmailPass="NEWGMAILPASSWORD" --set backEnd.image="resumeai/backend:${VERSION}" --set frontEnd.image="resumeai/frontend:${VERSION}" --set backEnd.backEndURL="http://resumeai-backend:4292" --create-namespace
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Check / Create EKS Cluster') {
+            steps {
+                withCredentials([aws(credentialsId: env.AWS_CREDENTIALS_ID)]) {
+                    script {
+                        sh """
+                            if ! eksctl get cluster --name ${env.CLUSTER_NAME} --region ${env.AWS_REGION}; then
+                                eksctl create cluster --name ${env.CLUSTER_NAME} --region ${env.AWS_REGION} --nodegroup-name standard-workers --node-type t3.medium --nodes 1 --nodes-min 1 --nodes-max 3 --managed
+                            fi
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Application with Helm') {
+            steps {
+                withCredentials([aws(credentialsId: env.AWS_CREDENTIALS_ID)]) {
+                    script {
+                        withCredentials([string(credentialsId: 'mongodb-url-secret', variable: 'MONGODB_URL')]) {
+                            sh """
+                                aws eks --region ${AWS_REGION} update-kubeconfig --name ${CLUSTER_NAME}
+                                helm repo add stable https://charts.helm.sh/stable
+                                helm repo update
+                                helm install resumeai ./ResumeAI --namespace resumeai --set secrets.mongoUrl=${MONGODB_URL} --set secrets.jwtSecretKey="NEWSECRETKEY" --set secrets.openAiKey="NEWOPENAIKEY" --set secrets.gmailUser="new_email@gmail.com" --set secrets.gmailPass="NEWGMAILPASSWORD" --set backEnd.image="${ECR_REPO_URI}/resumeai/backend:${VERSION}" --set frontEnd.image="${ECR_REPO_URI}/resumeai/frontend:${VERSION}" --set backEnd.backEndURL="http://resumeai-backend:4292" --create-namespace
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
