@@ -13,6 +13,7 @@ ResumeAI is a tool that allows users to generate, update, and enhance their resu
   - [Push Docker Images to Amazon ECR](#push-docker-images-to-amazon-ecr)
   - [Deploy to Amazon EKS](#deploy-to-amazon-eks)
   - [Deploy to Minikube](#deploy-to-minikube)
+  - [Deployment to AKS](#deployment-to-aks)
 - [CI/CD with Jenkins](#cicd-with-jenkins)
   - [Setup Jenkins Pipeline](#setup-jenkins-pipeline)
 - [Tech Stack](#tech-stack)
@@ -178,10 +179,42 @@ Push Docker Images to Amazon ECR
     ```sh
     minikube service resumeai-frontend
     ```
+### Deployment to AKS
+1. Create Azure Kubernetes Service (AKS) cluster:
+    ```sh
+    # Create resource group once login to AZ using `az login`
+    az group create --name <AKS_RESOURCE_GROUP> --location <AKS_LOCATION>
+    # Create AKS cluster
+    az aks create --resource-group <AKS_RESOURCE_GROUP> --name <AKS_CLUSTER_NAME> --node-count 2 --node-vm-size Standard_DS2_v2 --generate-ssh-keys
+    ```
+2. Configure kubectl to use your Azure Kubernetes Service (AKS) cluster:
+
+    ```sh
+    kubectl config use-context {AKS_CLUSTER_NAME}
+    ```
+3. Create Kubernetes deployment and service files for both frontend and backend using helm.
+    ```sh
+    helm create ResumeAI
+    ```
+
+4. Navigate to the helm directory, Apply the deployment:
+    ```sh
+    cd ResumeAI
+    helm repo add stable https://charts.helm.sh/stable
+    helm repo update
+    helm install resumeai ./resumeai
+    ```
+5. Verify the deployment:
+    ```sh
+    kubectl get pods
+    kubectl get services
+    ```
+
 ### CI/CD with Jenkins
 #### Setup Jenkins Pipeline
 1. `Jenkinsfile`: Create a Jenkinsfile in your repository to automate the CI/CD pipeline. Example is attached in the repo.
-2. `Add Jenkins Credentials`: Add AWS credentials and Docker credentials in Jenkins for accessing ECR and deploying to EKS.
+2. `Add Jenkins Credentials`: Add AWS credentials and Docker credentials in Jenkins for accessing ECR and deploying to EKS.Add service principal credentials to Jenkins with ID 'azure-credentials'
+The credentials should include Client ID, Client Secret, and Tenant ID
 3. `Create Pipeline`: In Jenkins, create a new pipeline job and point it to your repository containing the Jenkinsfile.
 4. `Run the Pipeline`: Run the Jenkins job to build, push, and deploy the application.
 
