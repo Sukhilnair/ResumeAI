@@ -14,8 +14,10 @@ ResumeAI is a tool that allows users to generate, update, and enhance their resu
   - [Deploy to Amazon EKS](#deploy-to-amazon-eks)
   - [Deploy to Minikube](#deploy-to-minikube)
   - [Deployment to AKS](#deployment-to-aks)
+- [Monitoring](#monitoring)
 - [CI/CD with Jenkins](#cicd-with-jenkins)
   - [Setup Jenkins Pipeline](#setup-jenkins-pipeline)
+- 
 - [Tech Stack](#tech-stack)
 - [License](#license)
 
@@ -209,6 +211,33 @@ Push Docker Images to Amazon ECR
     kubectl get pods
     kubectl get services
     ```
+### Monitoring
+Created a comprehensive monitoring setup with Prometheus and Grafana for Kubernetes cluster. Here's a breakdown of the configurations:
+
+1. Prometheus Configuration:
+
+    - Deployment with a single replica.
+    - ConfigMap with Kubernetes service discovery.
+    - Scrapes node and pod metrics.
+    - Configured to collect metrics from Kubernetes nodes and pods.
+
+
+2. Grafana Configuration:
+
+    - Deployment with a single replica.
+    - LoadBalancer service type for external access.
+    - Secret for admin password.
+    - ConfigMap for basic configuration.
+    - Persistent storage using EmptyDir.
+
+
+
+#### Key things to note:
+
+- Replace `admin@123` with a strong password in the Grafana secrets
+- The Prometheus configuration uses Kubernetes service discovery to automatically detect and scrape metrics
+- Grafana is set up with basic configurations and can be further customized
+- Log in to Grafana and add Prometheus as a data source
 
 ### CI/CD with Jenkins
 #### Setup Jenkins Pipeline
